@@ -13,24 +13,74 @@
 
 'use strict';
 
+// require nodeJS http module
+const https = require("https");
+const fs = require('fs');
+var url = 'https://pm25.lass-net.org/data/last-all-epa.json';
+var data;
+
+// Get From HTTP
+https.get(url, function(response) {
+    data = '';
+    // response event 'data' 當 data 陸續接收的時候，用一個變數累加它。
+    response.on('data', function(chunk) {
+        data += chunk;
+    });
+    // response event 'end' 當接收 data 結束的時候。
+    response.on('end', function() {
+        // 將 JSON parse 成物件
+        data = JSON.parse(data);
+        // console.log(data); // 可開啟這行在 Command Line 觀看 data 內容
+
+
+        // 對 data 做處理，寫你的 code !!
+        /* 儲存成 JSON
+         * fs.writeFile 使用 File System 的 writeFile 方法做儲存
+         * 傳入三個參數（ 存檔名, 資料, 格式 ）
+         */
+        fs.writeFile( 'save.json', JSON.stringify( data ), function(err){
+		//console.log(err);
+	});
+    });
+}).on('error', function(e){ // http get 錯誤時
+      //console.log(e);
+});
+
 const express = require('express');
 
 const app = express();
 
 // [START hello_world]
-// Say hello!
+// index
 app.get('/', (req, res) => {
-  res.status(200).send('Hello, world!');
+	res.status(200).send('Hello, world!');
+	console.log('there\'s someone in index page!');
 });
-// [END hello_world]
+// End index
+
+// second
+app.get('/3*2', (req, res) => {
+	res.send('here is 32');
+	console.log('there\'s someone in 3*2 page!');
+});
+// End second
+
+
+app.get('/json', (req, res) => {
+	res.setHeader('Content-Type', 'application/json');
+	res.send(data);
+	console.log('Json Page browsed.');
+});
+
+
 
 if (module === require.main) {
   // [START server]
   // Start the server
-  const server = app.listen(process.env.PORT || 8080, () => {
-    const port = server.address().port;
-    console.log(`App listening on port ${port}`);
-  });
+	const server = app.listen(process.env.PORT || 8080, () => {
+		const port = server.address().port;
+		console.log(`App listening on port ${port}`);
+	});
   // [END server]
 }
 
